@@ -3,28 +3,24 @@ package panel
 import (
 	"errors"
 	"fmt"
-	"strconv"
+	"github.com/go-resty/resty/v2"
 	"strings"
 	"time"
 
-	"github.com/sirupsen/logrus"
-
 	"github.com/InazumaV/V2bX/conf"
-	"github.com/go-resty/resty/v2"
+	"github.com/sirupsen/logrus"
 )
 
 // Panel is the interface for different panel's api.
 
 type Client struct {
-	client           *resty.Client
-	APIHost          string
-	Token            string
-	NodeType         string
-	NodeId           int
-	nodeEtag         string
-	userEtag         string
-	responseBodyHash string
-	LastReportOnline map[int]int
+	client   *resty.Client
+	APIHost  string
+	Token    string
+	NodeType string
+	NodeId   int
+	nodeEtag string
+	userEtag string
 }
 
 func New(c *conf.ApiConfig) (*Client, error) {
@@ -61,9 +57,9 @@ func New(c *conf.ApiConfig) (*Client, error) {
 	}
 	// set params
 	client.SetQueryParams(map[string]string{
-		"node_type": c.NodeType,
-		"node_id":   strconv.Itoa(c.NodeID),
-		"token":     c.Key,
+		//"node_type": c.NodeType,
+		//"node_id":   strconv.Itoa(c.NodeID),
+		"key": c.Key,
 	})
 	return &Client{
 		client:   client,

@@ -56,18 +56,12 @@ func (c *Controller) reportUserTrafficTask() (err error) {
 				result = append(result, online)
 			}
 		}
-		reportOnline := make(map[int]int)
 		data := make(map[int][]string)
 		for _, onlineuser := range result {
 			// json structure: { UID1:["ip1","ip2"],UID2:["ip3","ip4"] }
 			data[onlineuser.UID] = append(data[onlineuser.UID], fmt.Sprintf("%s_%d", onlineuser.IP, c.info.Id))
-			if _, ok := reportOnline[onlineuser.UID]; ok {
-				reportOnline[onlineuser.UID]++
-			} else {
-				reportOnline[onlineuser.UID] = 1
-			}
 		}
-		if err = c.apiClient.ReportNodeOnlineUsers(&data, &reportOnline); err != nil {
+		if err = c.apiClient.ReportNodeOnlineUsers(&data); err != nil {
 			log.WithFields(log.Fields{
 				"tag": c.tag,
 				"err": err,

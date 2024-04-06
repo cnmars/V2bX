@@ -78,24 +78,16 @@ func getInboundOptions(tag string, info *panel.NodeInfo, c *conf.Options) (optio
 		tls.Enabled = true
 		v := info.VAllss
 		tls.ServerName = v.TlsSettings.ServerName
-		port, _ := strconv.Atoi(v.TlsSettings.ServerPort)
-		var dest string
-		if v.TlsSettings.Dest != "" {
-			dest = v.TlsSettings.Dest
-		} else {
-			dest = tls.ServerName
-		}
-
+		dest, _ := strconv.Atoi(v.TlsSettings.ServerPort)
 		mtd, _ := time.ParseDuration(v.RealityConfig.MaxTimeDiff)
 		tls.Reality = &option.InboundRealityOptions{
 			Enabled:    true,
 			ShortID:    []string{v.TlsSettings.ShortId},
 			PrivateKey: v.TlsSettings.PrivateKey,
-			Xver:       uint8(v.TlsSettings.Xver),
 			Handshake: option.InboundRealityHandshakeOptions{
 				ServerOptions: option.ServerOptions{
-					Server:     dest,
-					ServerPort: uint16(port),
+					Server:     tls.ServerName,
+					ServerPort: uint16(dest),
 				},
 			},
 			MaxTimeDifference: option.Duration(mtd),
@@ -222,80 +214,6 @@ func getInboundOptions(tag string, info *panel.NodeInfo, c *conf.Options) (optio
 		in.ShadowsocksOptions.Users = []option.ShadowsocksUser{{
 			Password: randomPasswd,
 		}}
-	case "trojan":
-		n := info.Trojan
-		t := option.V2RayTransportOptions{
-			Type: n.Network,
-		}
-		switch n.Network {
-		case "tcp":
-			t.Type = ""
-		case "ws":
-			var (
-				path    string
-				ed      int
-				headers map[string]option.Listable[string]
-			)
-			if len(n.NetworkSettings) != 0 {
-				network := WsNetworkConfig{}
-				err := json.Unmarshal(n.NetworkSettings, &network)
-				if err != nil {
-					return option.Inbound{}, fmt.Errorf("decode NetworkSettings error: %s", err)
-				}
-				var u *url.URL
-				u, err = url.Parse(network.Path)
-				if err != nil {
-					return option.Inbound{}, fmt.Errorf("parse path error: %s", err)
-				}
-				path = u.Path
-				ed, _ = strconv.Atoi(u.Query().Get("ed"))
-				headers = make(map[string]option.Listable[string], len(network.Headers))
-				for k, v := range network.Headers {
-					headers[k] = option.Listable[string]{
-						v,
-					}
-				}
-			}
-			t.WebsocketOptions = option.V2RayWebsocketOptions{
-				Path:                path,
-				EarlyDataHeaderName: "Sec-WebSocket-Protocol",
-				MaxEarlyData:        uint32(ed),
-				Headers:             headers,
-			}
-		case "grpc":
-			if len(n.NetworkSettings) != 0 {
-				err := json.Unmarshal(n.NetworkSettings, &t.GRPCOptions)
-				if err != nil {
-					return option.Inbound{}, fmt.Errorf("decode NetworkSettings error: %s", err)
-				}
-			}
-		default:
-			t.Type = ""
-		}
-		in.Type = "trojan"
-		in.TrojanOptions = option.TrojanInboundOptions{
-			ListenOptions: listen,
-			InboundTLSOptionsContainer: option.InboundTLSOptionsContainer{
-				TLS: &tls,
-			},
-			Transport: &t,
-		}
-		if c.SingOptions.FallBackConfigs != nil {
-			// fallback handling
-			fallback := c.SingOptions.FallBackConfigs.FallBack
-			fallbackPort, err := strconv.Atoi(fallback.ServerPort)
-			if err == nil {
-				in.TrojanOptions.Fallback = &option.ServerOptions{
-					Server:     fallback.Server,
-					ServerPort: uint16(fallbackPort),
-				}
-			}
-			fallbackForALPNMap := c.SingOptions.FallBackConfigs.FallBackForALPN
-			fallbackForALPN := make(map[string]*option.ServerOptions, len(fallbackForALPNMap))
-			if err := processFallback(c, fallbackForALPN); err == nil {
-				in.TrojanOptions.FallbackForALPN = fallbackForALPN
-			}
-		}
 	case "hysteria":
 		in.Type = "hysteria"
 		in.HysteriaOptions = option.HysteriaInboundOptions{
@@ -309,23 +227,14 @@ func getInboundOptions(tag string, info *panel.NodeInfo, c *conf.Options) (optio
 		}
 	case "hysteria2":
 		in.Type = "hysteria2"
-		var obfs *option.Hysteria2Obfs
-		if info.Hysteria2.ObfsType != "" && info.Hysteria2.ObfsPassword != "" {
-			obfs = &option.Hysteria2Obfs{
-				Type:     info.Hysteria2.ObfsType,
-				Password: info.Hysteria2.ObfsPassword,
-			}
-		} else if info.Hysteria2.ObfsType != "" {
-			obfs = &option.Hysteria2Obfs{
-				Type:     "salamander",
-				Password: info.Hysteria2.ObfsType,
-			}
-		}
 		in.Hysteria2Options = option.Hysteria2InboundOptions{
 			ListenOptions: listen,
-			UpMbps:        info.Hysteria2.UpMbps,
-			DownMbps:      info.Hysteria2.DownMbps,
-			Obfs:          obfs,
+			UpMbps:        info.Hysteria.UpMbps,
+			DownMbps:      info.Hysteria.DownMbps,
+			Obfs: &option.Hysteria2Obfs{
+				Type:     info.Hysteria.Obfs,
+				Password: info.Hysteria.ObfsPassword,
+			},
 			InboundTLSOptionsContainer: option.InboundTLSOptionsContainer{
 				TLS: &tls,
 			},

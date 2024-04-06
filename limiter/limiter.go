@@ -66,8 +66,8 @@ func AddLimiter(tag string, l *conf.LimitConfig, users []panel.UserInfo) *Limite
 		if users[i].SpeedLimit != 0 {
 			userLimit.SpeedLimit = users[i].SpeedLimit
 		}
-		if users[i].DeviceLimit != 0 {
-			userLimit.DeviceLimit = users[i].DeviceLimit
+		if users[i].NodeConnector != 0 {
+			userLimit.DeviceLimit = int(users[i].NodeConnector)
 		}
 		info.UserLimitInfo.Store(format.UserTag(tag, users[i].Uuid), userLimit)
 	}
@@ -107,8 +107,8 @@ func (l *Limiter) UpdateUser(tag string, added []panel.UserInfo, deleted []panel
 			userLimit.SpeedLimit = added[i].SpeedLimit
 			userLimit.ExpireTime = 0
 		}
-		if added[i].DeviceLimit != 0 {
-			userLimit.DeviceLimit = added[i].DeviceLimit
+		if added[i].NodeConnector != 0 {
+			userLimit.DeviceLimit = int(added[i].NodeConnector)
 		}
 		l.UserLimitInfo.Store(format.UserTag(tag, added[i].Uuid), userLimit)
 		l.UUIDtoUID[added[i].Uuid] = added[i].Id
