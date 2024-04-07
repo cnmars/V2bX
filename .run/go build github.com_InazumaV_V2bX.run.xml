@@ -3,7 +3,7 @@
     <module name="V2bX" />
     <working_directory value="$PROJECT_DIR$" />
     <go_parameters value="-tags &quot;sing xray with_reality_server with_quic with_grpc with_utls with_wireguard with_acme&quot; -trimpath -ldflags='-s -w'" />
-    <parameters value="server" />
+    <parameters value="server -c config.json" />
     <kind value="DIRECTORY" />
     <package value="github.com/InazumaV/V2bX" />
     <directory value="$PROJECT_DIR$" />
