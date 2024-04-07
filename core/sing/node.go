@@ -231,13 +231,16 @@ func getInboundOptions(tag string, info *panel.NodeInfo, c *conf.Options) (optio
 			ListenOptions: listen,
 			UpMbps:        info.Hysteria.UpMbps,
 			DownMbps:      info.Hysteria.DownMbps,
-			Obfs: &option.Hysteria2Obfs{
-				Type:     info.Hysteria.Obfs,
-				Password: info.Hysteria.ObfsPassword,
-			},
+			Obfs:          nil,
 			InboundTLSOptionsContainer: option.InboundTLSOptionsContainer{
 				TLS: &tls,
 			},
+		}
+		if info.Hysteria.Obfs != "" && info.Hysteria.ObfsPassword != "" {
+			in.Hysteria2Options.Obfs = &option.Hysteria2Obfs{
+				Type:     info.Hysteria.Obfs,
+				Password: info.Hysteria.ObfsPassword,
+			}
 		}
 	}
 	return in, nil

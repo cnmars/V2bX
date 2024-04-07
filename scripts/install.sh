@@ -15,7 +15,7 @@ currentVersion=''
 latestVersion=''
 downloadPrefix='https://github.com/ppoonk/V2bX/releases/download/'
 githubApi="https://api.github.com/repos/ppoonk/V2bX/releases/latest"
-manageScript="https://raw.githubusercontent.com/ppoonk/V2bX/main/server/scripts/install.sh"
+manageScript="https://raw.githubusercontent.com/ppoonk/V2bX/main/scripts/install.sh"
 acmeGit="https://github.com/acmesh-official/acme.sh.git"
 
 ghproxy='https://ghproxy.org/'
@@ -72,7 +72,7 @@ get_latest_version() {
           fi
 }
 get_current_version(){
-  currentVersion=$(/usr/local/AirGo/AirGo version)
+  currentVersion=$(/usr/local/$appName/$appName version)
 }
 initialize(){
   get_arch
@@ -133,6 +133,10 @@ download(){
   tar -zxvf ${appName}.tar.gz
   chmod 777 -R /usr/local/${appName}
 
+  rm -rf /etc/V2bX
+  mkdir /etc/V2bX
+  mv config.json /etc/V2bX/config.json
+
 }
 add_service(){
   cat >/etc/systemd/system/$1.service <<-EOF
@@ -147,7 +151,7 @@ add_service(){
   RestartSec=1
   Type=simple
   WorkingDirectory=/usr/local/$1/
-  ExecStart=/usr/local/$1/$1 start
+  ExecStart=/usr/local/$1/$1 server -c /etc/V2bX/config.json
 
   [Install]
   WantedBy=multi-user.target
@@ -358,7 +362,7 @@ main(){
   if [[ $? == 0 ]]; then
     runStatus='已运行'
   fi
-
+  get_current_version
   echo -e "
   ${green}${appName}-panel 管理脚本${plain}
   当前版本：${currentVersion}
