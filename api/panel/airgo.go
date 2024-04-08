@@ -39,7 +39,6 @@ func (c *Client) GetNodeInfo() (node *NodeInfo, err error) {
 		return nil, err
 	}
 	node, err = c.ParseAirGoNodeInfo(&nodeInfoResponse)
-	//show(node)
 	return
 }
 func (c *Client) ParseAirGoNodeInfo(n *NodeInfoResponse) (*NodeInfo, error) {

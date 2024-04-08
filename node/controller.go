@@ -21,6 +21,7 @@ type Controller struct {
 	userList                  []panel.UserInfo
 	info                      *panel.NodeInfo
 	nodeInfoMonitorPeriodic   *task.Task
+	nodeStatusMonitorPeriodic *task.Task
 	userReportPeriodic        *task.Task
 	renewCertPeriodic         *task.Task
 	dynamicSpeedLimitPeriodic *task.Task

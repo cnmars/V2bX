@@ -16,6 +16,10 @@ func (c *Controller) startTasks(node *panel.NodeInfo) {
 		Interval: node.PullInterval,
 		Execute:  c.nodeInfoMonitor,
 	}
+	c.nodeStatusMonitorPeriodic = &task.Task{
+		Interval: node.PushInterval,
+		Execute:  c.reportNodeStatusMonitor,
+	}
 	// fetch user list task
 	c.userReportPeriodic = &task.Task{
 		Interval: node.PushInterval,
@@ -24,6 +28,7 @@ func (c *Controller) startTasks(node *panel.NodeInfo) {
 	log.WithField("tag", c.tag).Info("Start monitor node status")
 	// delay to start nodeInfoMonitor
 	_ = c.nodeInfoMonitorPeriodic.Start(false)
+	_ = c.nodeStatusMonitorPeriodic.Start(false)
 	log.WithField("tag", c.tag).Info("Start report node status")
 	_ = c.userReportPeriodic.Start(false)
 	if node.Security == panel.Tls {
@@ -209,6 +214,9 @@ func (c *Controller) nodeInfoMonitor() (err error) {
 			Infof("%d user deleted, %d user added", len(deleted), len(added))
 	}
 	return nil
+}
+func (c *Controller) reportNodeStatusMonitor() (err error) {
+	return c.apiClient.ReportNodeStatus()
 }
 
 func (c *Controller) SpeedChecker() error {
